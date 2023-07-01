@@ -30,7 +30,6 @@ function Game() {
     }
 
     return <div key={roomId}>
-        {solution}
         {(isGameOver || isPlayerLeft) && <GameOverDialog isWon={isGameWon} isPlayerLeft={isPlayerLeft} solution={solution} onClick={closeDialog} />}
         <div className='boards'>
             <Board board={board} nickname={playerName} currentTurn={currentTurn} />
