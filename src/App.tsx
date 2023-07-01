@@ -1,7 +1,7 @@
 import './App.css'
-import Game from './game/Game';
+import Game from './components/game/Game';
 import { useState } from 'react';
-import WelcomeDialog from './welcome-dialog/WelcomeDialog';
+import WelcomeDialog from './dialogs/welcome-dialog/WelcomeDialog';
 
 function App() {
   const [isWelcomeDialogOpen, setIsWelcomeDialogOpen] = useState(true);
@@ -11,11 +11,11 @@ function App() {
   }
 
   return (
-    <div className='container'>
-      {
-        isWelcomeDialogOpen ? <WelcomeDialog onClick={closeDialog} /> : <Game />
-      }
-    </div>
+      <div className='container'>
+        {
+          isWelcomeDialogOpen ? <WelcomeDialog onClick={closeDialog} /> : <Game />
+        }
+      </div>
   )
 }
 

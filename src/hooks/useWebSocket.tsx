@@ -1,56 +1,31 @@
-import { useEffect, useState } from 'react';
-import socketIO from 'socket.io-client';
-import { GameMove, GameSquare, GameStart } from '../types';
+import { useEffect } from 'react';
+import { socket } from '../utils/socket';
+import { useShared } from '../context/shared.context';
 
-const socket = socketIO('http://localhost:8081');
-
-export default function useWebSocket(playerName?: string) {
-    const [solution, setSolution] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-    const [opponentNickname, setOpponentNickname] = useState('');
-    const [opponentRow, setOpponentRow] = useState<{ row: GameSquare[], turn: number }>({ row: [], turn: 0 });
-    const [roomId, setRoomId] = useState('');
-
-    const onConnect = () => {
-        //console.log('connected');
-    }
-
-    const onDisconnect = () => {
-        //setIsLoading(true);
-    }
-
-    const onStartGame = ({ name, roomId, word }: GameStart) => {
-        setIsLoading(false);
-        setOpponentNickname(name);
-        setRoomId(roomId);
-        setSolution(word);
-    }
-
-    const onMessage = ({ row, turn }: GameMove) => {
-        setOpponentRow({ row, turn });
-    }
+export default function useWebSocket(playerName: string) {
+    const { updateOpponentBoard, startGame, updateGameState, updatePlayerLeft } = useShared();
 
     const sendMessage = (event: string, payload: any) => {
         socket.emit(event, payload);
     }
 
     useEffect(() => {
-        socket.on('connect', onConnect);
-        socket.on('disconnect', onDisconnect);
-        socket.on('start_game', onStartGame);
-        socket.on('message', onMessage);
+        socket.connect();
+        
+        socket.on('start_game', startGame);
+        socket.on('message', updateOpponentBoard);
+        socket.on('game_over', updateGameState);
+        socket.on('player_left', updatePlayerLeft);
 
-        if (playerName) {
-            sendMessage('join_room', { name: playerName });
-        }
+        sendMessage('join_room', { name: playerName });
 
         return () => {
-            socket.off('connect', onConnect);
-            socket.off('disconnect', onDisconnect);
-            socket.off('start_game', onStartGame);
-            socket.off('message', onMessage);
+            socket.off('start_game', startGame);
+            socket.off('message', updateOpponentBoard);
+            socket.off('game_over', updateGameState);
+            socket.off('player_left', updatePlayerLeft);
         };
-    }, [playerName]);
+    }, [playerName, startGame, updateGameState, updateOpponentBoard, updatePlayerLeft]);
 
-    return { sendMessage, solution, isLoading, opponentNickname, roomId, opponentRow };
+    return { sendMessage };
 }

@@ -1,5 +1,5 @@
 import './Board.css';
-import { GameSquare } from "../types";
+import { GameSquare } from "../../types";
 
 type Props = {
     board: Array<Array<GameSquare>>,

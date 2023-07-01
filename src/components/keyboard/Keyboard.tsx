@@ -1,5 +1,5 @@
-import { KEYBOARD_DISPLAY } from '../consts';
-import { UsedKey } from '../types';
+import { KEYBOARD_DISPLAY } from '../../consts';
+import { UsedKey } from '../../types';
 import './Keyboard.css';
 
 type Props = {

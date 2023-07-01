@@ -18,3 +18,14 @@ export interface GameMove {
     row: GameSquare[];
     turn: number;
 }
+
+export interface GameWon {
+    isWon: boolean;
+}
+
+export interface FormatLettersOptions {
+    board: GameSquare[][];
+    solution: string;
+    guess: string;
+    turn: number;
+}

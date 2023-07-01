@@ -1,15 +1,14 @@
 import { Dialog, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage';
 import { Button } from '@mui/base';
-import { LOCAL_STORAGE_KEY } from '../consts';
+import { LOCAL_STORAGE_KEY } from '../../consts';
+import { getItem, removeItem, setItem } from '../../utils/localStorage';
 
 type Props = {
     onClick: () => void;
 }
 
 export default function WelcomeDialog({ onClick }: Props) {
-    const { getItem, removeItem, setItem } = useLocalStorage();
     const [nickname, setNickname] = useState('');
     const [isShowLogout, setIsShowLogout] = useState(false);
 
