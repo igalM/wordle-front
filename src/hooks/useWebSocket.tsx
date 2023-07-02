@@ -1,17 +1,17 @@
 import { useEffect } from 'react';
 import { socket } from '../utils/socket';
-import { useShared } from '../context/shared.context';
+import useShared from './useShared';
 
 export default function useWebSocket(playerName: string) {
     const { updateOpponentBoard, startGame, updateGameState, updatePlayerLeft } = useShared();
 
-    const sendMessage = (event: string, payload: any) => {
+    const sendMessage = (event: string, payload: object) => {
         socket.emit(event, payload);
     }
 
     useEffect(() => {
         socket.connect();
-        
+
         socket.on('start_game', startGame);
         socket.on('message', updateOpponentBoard);
         socket.on('game_over', updateGameState);

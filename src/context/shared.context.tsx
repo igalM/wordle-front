@@ -2,13 +2,14 @@ import React, { useCallback, useState } from 'react';
 import { GameMove, GameSquare, GameStart } from '../types';
 import { createNewBoard } from '../consts';
 
-const SharedContext = React.createContext<ISharedContext | null>(null);
+export const SharedContext = React.createContext<SharedContextReturnType | null>(null);
 
-type ISharedContext = {
+type SharedContextReturnType = {
     solution: string,
     isLoading: boolean,
     opponentNickname: string,
     opponentBoard: GameSquare[][],
+    opponentCurrentTurn: number,
     roomId: string,
     isGameOver: boolean,
     isGameWon: boolean,
@@ -30,6 +31,7 @@ export const SharedProvider = ({ children }: Props) => {
     const [isLoading, setIsLoading] = useState(true);
     const [opponentNickname, setOpponentNickname] = useState('');
     const [opponentBoard, setOpponentBoard] = useState<GameSquare[][]>([[]]);
+    const [opponentCurrentTurn, setOpponentCurrentTurn] = useState<number>(0);
     const [roomId, setRoomId] = useState('');
     const [isGameWon, setIsGameWon] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
@@ -43,6 +45,7 @@ export const SharedProvider = ({ children }: Props) => {
         setIsGameOver(false);
         setIsGameWon(false);
         setIsPlayerLeft(false);
+        setOpponentCurrentTurn(0);
         setRoomId(roomId);
         setSolution(word);
     }, []);
@@ -53,6 +56,7 @@ export const SharedProvider = ({ children }: Props) => {
             updatedBoard[turn] = row;
             return updatedBoard;
         });
+        setOpponentCurrentTurn(prevTurn => prevTurn + 1);
     }, []);
 
     const updateGameState = useCallback(({ isWon }: { isWon: boolean }) => {
@@ -74,6 +78,7 @@ export const SharedProvider = ({ children }: Props) => {
         isLoading,
         opponentNickname,
         opponentBoard,
+        opponentCurrentTurn,
         roomId,
         isGameOver,
         isGameWon,
@@ -87,11 +92,4 @@ export const SharedProvider = ({ children }: Props) => {
     }}>
         {children}
     </SharedContext.Provider>
-}
-
-export const useShared = () => {
-    const state = React.useContext(SharedContext);
-    if (!state) throw Error('PLEASE ADD CONTEXT TO TREE');
-
-    return state;
 }

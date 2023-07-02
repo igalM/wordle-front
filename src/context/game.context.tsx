@@ -1,24 +1,50 @@
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import { FormatLettersOptions, GameSquare, UsedKey } from '../types';
 import { VALID_GUESSES } from '../validGuesses';
 import useWebSocket from '../hooks/useWebSocket';
-import { useShared } from './shared.context';
 import { MAX_TURNS, createNewBoard } from '../consts';
 import useWordle from '../hooks/useWordle';
+import useSnackBar from '../hooks/useSnackbar';
+import useShared from '../hooks/useShared';
 
-const GameContext = React.createContext<UseGameDataReturnType | null>(null);
+export const GameContext = createContext<GameContextReturnType | null>(null);
 
-const useGameData = (name: string) => {
-    const { solution, isLoading, opponentNickname, opponentBoard, roomId,
-        isGameOver, isGameWon, isPlayerLeft, updateGameState, setIsLoading } = useShared();
-    const { sendMessage } = useWebSocket(name);
+type GameContextReturnType = {
+    playerName: string,
+    board: GameSquare[][],
+    usedKeys: UsedKey[] | null,
+    currentTurn: number,
+    isGameWon: boolean,
+    isGameOver: boolean,
+    isPlayerLeft: boolean,
+    isLoading: boolean,
+    opponentNickname: string,
+    opponentBoard: GameSquare[][],
+    opponentCurrentTurn: number,
+    solution: string,
+    shakeAnimation: boolean,
+    handleKeyPress: (event: KeyboardEvent) => void,
+    resetGame: () => void
+}
+
+type Props = {
+    playerName: string;
+    children: React.ReactNode;
+}
+
+export const GameProvider = ({ playerName, children }: Props) => {
+    const { solution, isLoading, opponentNickname, opponentBoard,
+        roomId, opponentCurrentTurn, isGameOver, isGameWon, isPlayerLeft,
+        updateGameState, setIsLoading } = useShared();
+    const { sendMessage } = useWebSocket(playerName);
     const { formatLetters, formatUsedKey } = useWordle();
+    const { showSnackBar } = useSnackBar();
 
-    const [playerName] = useState(name);
     const [board, setBoard] = useState<GameSquare[][]>([[]]);
     const [usedKeys, setUsedKeys] = useState<UsedKey[] | null>(null);
     const [currentTurn, setCurrentTurn] = useState(0);
     const [currentGuess, setCurrentGuess] = useState('');
+    const [shakeAnimation, setShakeAnimation] = useState<boolean>(false);
 
     useEffect(() => initBoard(), []);
 
@@ -40,12 +66,16 @@ const useGameData = (name: string) => {
 
     const checkGuess = () => {
         if (currentGuess.length !== 5) {
-            // alert 'Not enough letters'
+            showSnackBar('Not enough letters');
+            setShakeAnimation(true);
+            setTimeout(() => setShakeAnimation(false), 800);
             return;
         }
 
         if (!VALID_GUESSES.includes(currentGuess)) {
-            // alert 'Word not found'
+            showSnackBar('Not in word list');
+            setShakeAnimation(true);
+            setTimeout(() => setShakeAnimation(false), 800);
             return;
         }
 
@@ -106,14 +136,14 @@ const useGameData = (name: string) => {
     const onGameWon = () => {
         setTimeout(() => {
             sendMessage('game_over', { roomId, isWon: true });
-            updateGameState({ isWon: true});
+            updateGameState({ isWon: true });
         }, 1200);
     }
 
     const onGameLost = () => {
         setTimeout(() => {
             sendMessage('game_over', { roomId, isWon: false });
-            updateGameState({ isWon: false});
+            updateGameState({ isWon: false });
         }, 1200);
     }
 
@@ -144,12 +174,11 @@ const useGameData = (name: string) => {
         setCurrentGuess('');
         setUsedKeys([]);
         setBoard(board);
-        //setOpponentBoard(board);
 
-        sendMessage('reset_game', { name: playerName})
+        sendMessage('reset_game', { name: playerName })
     }
 
-    return {
+    return <GameContext.Provider value={{
         playerName,
         board,
         usedKeys,
@@ -160,24 +189,12 @@ const useGameData = (name: string) => {
         isLoading,
         opponentNickname,
         opponentBoard,
-        roomId,
+        opponentCurrentTurn,
         solution,
+        shakeAnimation,
         handleKeyPress,
         resetGame
-    }
-}
-
-type UseGameDataReturnType = ReturnType<typeof useGameData>;
-
-type Props = {
-    playerName: string;
-    children: React.ReactNode;
-}
-
-export const GameProvider = ({ playerName, children }: Props) => {
-    return <GameContext.Provider value={useGameData(playerName)}>
+    }}>
         {children}
     </GameContext.Provider>
 }
-
-export const useGame = () => React.useContext(GameContext)!;
