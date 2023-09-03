@@ -17,11 +17,16 @@ function Game() {
         solution, shakeAnimation, handleKeyPress, resetGame } = useGame();
 
     useEffect(() => {
-        document.addEventListener('keyup', handleKeyPress);
+        if(isLoading) {
+            return;
+        }
+
+       const timeoutId = setTimeout(() =>  document.addEventListener('keyup', handleKeyPress), 100);
         return () => {
+            clearTimeout(timeoutId);
             document.removeEventListener('keyup', handleKeyPress);
         }
-    }, [handleKeyPress]);
+    }, [handleKeyPress, isLoading]);
 
     const closeDialog = () => {
         resetGame();

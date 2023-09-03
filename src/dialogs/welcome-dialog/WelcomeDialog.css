@@ -1,0 +1,8 @@
+.actions-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.submit-btn {
+    margin-top: 15px;
+}

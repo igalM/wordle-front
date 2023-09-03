@@ -1,3 +1,4 @@
+import './WelcomeDialog.css';
 import { Dialog, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Button } from '@mui/base';
@@ -28,7 +29,7 @@ export default function WelcomeDialog({ onClick }: Props) {
 
     const startGame = () => {
         const nicknameExists = getItem(LOCAL_STORAGE_KEY);
-        if(!nicknameExists) {
+        if (!nicknameExists) {
             setItem(LOCAL_STORAGE_KEY, nickname);
         }
         onClick();
@@ -41,17 +42,19 @@ export default function WelcomeDialog({ onClick }: Props) {
                 You have to guess the word in 6 tries and do it faster than your random opponent.
                 You can see your opponent's progress on the adjacent board. The one who guesses the word the fastest wins!
             </p>
-            {
-                isShowLogout
-                    ? <p>You are logged in as {nickname} <span onClick={logout}>[Quit]</span></p>
-                    : (
-                        <>
-                            <h4>Enter your nickname</h4>
-                            <TextField variant="outlined" placeholder="Your nickname..." value={nickname} onChange={(e) => setNickname(e.target.value)} />
-                        </>
-                    )
-            }
-            <Button disabled={!nickname.length} onClick={startGame}>START THE GAME</Button>
+            <form className="actions-container">
+                {
+                    isShowLogout
+                        ? <p>You are logged in as {nickname} <span onClick={logout}>[Quit]</span></p>
+                        : (
+                            <>
+                                <h4>Enter your nickname</h4>
+                                <TextField variant="outlined" placeholder="Your nickname..." value={nickname} onChange={(e) => setNickname(e.target.value)} />
+                            </>
+                        )
+                }
+                <Button type="submit" className="submit-btn" disabled={!nickname.length} onClick={startGame}>START THE GAME</Button>
+            </form>
         </DialogContent>
     </Dialog>
 }
