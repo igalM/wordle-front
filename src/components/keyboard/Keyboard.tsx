@@ -3,7 +3,7 @@ import { UsedKey } from '../../types';
 import './Keyboard.css';
 
 type Props = {
-    usedKeys: UsedKey[] | null
+    usedKeys: UsedKey[] | null,
 }
 
 export default function Keyboard({ usedKeys }: Props) {

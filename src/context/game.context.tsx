@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { FormatLettersOptions, GameSquare, UsedKey } from '../types';
 import { VALID_GUESSES } from '../validGuesses';
 import useWebSocket from '../hooks/useWebSocket';
@@ -48,23 +48,73 @@ export const GameProvider = ({ playerName, children }: Props) => {
 
     useEffect(() => initBoard(), []);
 
-    const insertLetter = (char: string) => {
+    const insertLetter = useCallback((char: string) => {
         const updatedBoard = board.map(row => row.slice());
         updatedBoard[currentTurn][currentGuess.length].value = char;
 
         setCurrentGuess((prevGuess) => prevGuess + char);
         setBoard(updatedBoard);
-    }
+    }, [board, currentGuess, currentTurn]);
 
-    const deleteLetter = () => {
+    const deleteLetter = useCallback(() => {
         const updatedBoard = board.map(row => row.slice());
         updatedBoard[currentTurn][currentGuess.length - 1].value = '';
 
         setCurrentGuess((prevGuess) => prevGuess.slice(0, -1));
         setBoard(updatedBoard);
+    }, [board, currentGuess, currentTurn]);
+
+    const initBoard = () => {
+        const playerBoard = createNewBoard();
+        setBoard(playerBoard);
     }
 
-    const checkGuess = () => {
+    const onGameWon = useCallback(() => {
+        setTimeout(() => {
+            sendMessage('game_over', { roomId, isWon: true });
+            updateGameState({ isWon: true });
+        }, 1200);
+    }, [roomId, sendMessage, updateGameState]);
+
+    const onGameLost = useCallback(() => {
+        setTimeout(() => {
+            sendMessage('game_over', { roomId, isWon: false });
+            updateGameState({ isWon: false });
+        }, 1200);
+    }, [roomId, sendMessage, updateGameState]);
+
+    const onGameMove = useCallback((guess: GameSquare[]) => {
+        setTimeout(() => {
+            setCurrentGuess('');
+            setCurrentTurn((prevTurn) => prevTurn + 1);
+            setUsedKeys((prevUsedKeys) => {
+                const newKeys = [...prevUsedKeys || []];
+                guess.forEach(item => {
+                    const usedKeyIndex = newKeys.findIndex(usedKey => usedKey.char === item.value);
+                    if (usedKeyIndex > 0) {
+                        newKeys[usedKeyIndex] = formatUsedKey(newKeys[usedKeyIndex], item.bgColor);
+                    } else {
+                        newKeys.push({ char: item.value, bgColor: item.bgColor });
+                    }
+                });
+                return newKeys;
+            });
+        }, 1200);
+    }, [formatUsedKey]);
+
+    const resetGame = () => {
+        const board = createNewBoard();
+
+        setIsLoading(true);
+        setCurrentTurn(0);
+        setCurrentGuess('');
+        setUsedKeys([]);
+        setBoard(board);
+
+        sendMessage('reset_game', { name: playerName })
+    }
+
+    const checkGuess = useCallback(() => {
         if (currentGuess.length !== 5) {
             showSnackBar('Not enough letters');
             setShakeAnimation(true);
@@ -106,9 +156,9 @@ export const GameProvider = ({ playerName, children }: Props) => {
         }
 
         return onGameMove(formattedRow);
-    }
+    }, [board, currentGuess, currentTurn, formatLetters, onGameLost, onGameMove, onGameWon, roomId, sendMessage, showSnackBar, solution]);
 
-    const handleKeyPress = (event: KeyboardEvent) => {
+    const handleKeyPress = useCallback((event: KeyboardEvent) => {
         if (currentTurn === MAX_TURNS) {
             return;
         }
@@ -126,57 +176,7 @@ export const GameProvider = ({ playerName, children }: Props) => {
         if (key.match(/^[a-z]$/) && currentGuess.length !== 5) {
             return insertLetter(key);
         }
-    };
-
-    const initBoard = () => {
-        const playerBoard = createNewBoard();
-        setBoard(playerBoard);
-    }
-
-    const onGameWon = () => {
-        setTimeout(() => {
-            sendMessage('game_over', { roomId, isWon: true });
-            updateGameState({ isWon: true });
-        }, 1200);
-    }
-
-    const onGameLost = () => {
-        setTimeout(() => {
-            sendMessage('game_over', { roomId, isWon: false });
-            updateGameState({ isWon: false });
-        }, 1200);
-    }
-
-    const onGameMove = (guess: GameSquare[]) => {
-        setTimeout(() => {
-            setCurrentGuess('');
-            setCurrentTurn((prevTurn) => prevTurn + 1);
-            setUsedKeys((prevUsedKeys) => {
-                const newKeys = [...prevUsedKeys || []];
-                guess.forEach(item => {
-                    const usedKeyIndex = newKeys.findIndex(usedKey => usedKey.char === item.value);
-                    if (usedKeyIndex > 0) {
-                        newKeys[usedKeyIndex] = formatUsedKey(newKeys[usedKeyIndex], item.bgColor);
-                    } else {
-                        newKeys.push({ char: item.value, bgColor: item.bgColor });
-                    }
-                });
-                return newKeys;
-            });
-        }, 1200);
-    }
-
-    const resetGame = () => {
-        const board = createNewBoard();
-
-        setIsLoading(true);
-        setCurrentTurn(0);
-        setCurrentGuess('');
-        setUsedKeys([]);
-        setBoard(board);
-
-        sendMessage('reset_game', { name: playerName })
-    }
+    }, [checkGuess, currentTurn, deleteLetter, insertLetter, currentGuess]);
 
     return <GameContext.Provider value={{
         playerName,

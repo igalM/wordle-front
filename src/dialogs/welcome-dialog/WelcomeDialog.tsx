@@ -39,7 +39,8 @@ export default function WelcomeDialog({ onClick }: Props) {
         <DialogTitle>Multiplayer Mode</DialogTitle>
         <DialogContent>
             <p>
-                You have to guess the word in 6 tries and do it faster than your random opponent.
+                You have to guess the word in 6 tries and do it faster than your opponent.
+                Use the keyboard to enter letters and ENTER to submit a guess.
                 You can see your opponent's progress on the adjacent board. The one who guesses the word the fastest wins!
             </p>
             <form className="actions-container">
