@@ -2,6 +2,14 @@ import './App.css'
 import Game from './components/game/Game';
 import { useState } from 'react';
 import WelcomeDialog from './dialogs/welcome-dialog/WelcomeDialog';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+const lightTheme = createTheme({
+  palette: {
+    mode: 'light',
+  },
+});
 
 function App() {
   const [isWelcomeDialogOpen, setIsWelcomeDialogOpen] = useState(true);
@@ -11,11 +19,14 @@ function App() {
   }
 
   return (
-      <div className='container'>
+      <ThemeProvider theme={lightTheme}>
+        <CssBaseline />
+        <div className='container'>
         {
           isWelcomeDialogOpen ? <WelcomeDialog onClick={closeDialog} /> : <Game />
         }
       </div>
+      </ThemeProvider>
   )
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@mui/base';
 import { LOCAL_STORAGE_KEY } from '../../consts';
 import { getItem, removeItem, setItem } from '../../utils/localStorage';
+import Instructions from '../../assets/instructions.png';
 
 type Props = {
     onClick: () => void;
@@ -36,13 +37,9 @@ export default function WelcomeDialog({ onClick }: Props) {
     }
 
     return <Dialog open>
-        <DialogTitle>Multiplayer Mode</DialogTitle>
+        <DialogTitle>Wordle Multiplayer</DialogTitle>
         <DialogContent>
-            <p>
-                You have to guess the word in 6 tries and do it faster than your opponent.
-                Use the keyboard to enter letters and ENTER to submit a guess.
-                You can see your opponent's progress on the adjacent board. The one who guesses the word the fastest wins!
-            </p>
+            <img src={Instructions} style={{ width: '100%'}}/>
             <form className="actions-container">
                 {
                     isShowLogout
